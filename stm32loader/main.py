@@ -327,7 +327,11 @@ def main(*args, **kwargs):
         loader.connect()
         try:
             loader.read_device_id()
-            loader.read_device_uid()
+            try:
+                loader.read_device_uid()
+            except Exception as e:
+                # temporary catch-all
+                print("Error while reading device UID and flash size: {0}".format(e))
             loader.perform_commands()
         finally:
             loader.reset()
