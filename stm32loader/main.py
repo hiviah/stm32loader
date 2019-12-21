@@ -42,6 +42,7 @@ class Stm32Loader:
     BOOLEAN_FLAG_OPTIONS = {
         "-e": "erase",
         "-u": "unprotect",
+        "-W": "write_unprotect",
         "-w": "write",
         "-v": "verify",
         "-r": "read",
@@ -64,6 +65,7 @@ class Stm32Loader:
             "address": 0x08000000,
             "erase": False,
             "unprotect": False,
+            "write_unprotect": False,
             "write": False,
             "verify": False,
             "read": False,
@@ -85,7 +87,7 @@ class Stm32Loader:
         """Parse the list of command-line arguments."""
         try:
             # parse command-line arguments using getopt
-            options, arguments = getopt.getopt(arguments, "hqVeuwvrsnRBP:p:b:a:l:g:f:", ["help"])
+            options, arguments = getopt.getopt(arguments, "hqVeuWwvrsnRBP:p:b:a:l:g:f:", ["help"])
         except getopt.GetoptError as err:
             # print help information and exit:
             # this prints something like "option -a not recognized"
@@ -160,14 +162,21 @@ class Stm32Loader:
         if self.configuration["write"] or self.configuration["verify"]:
             with open(self.configuration["data_file"], "rb") as read_file:
                 binary_data = bytearray(read_file.read())
+        if self.configuration["write_unprotect"]:
+            try:
+                print("Executing write unprotect")
+                self.stm32.write_unprotect()
+            except bootloader.CommandError:
+                print("Write unprotect failed", file=sys.stderr)
+                sys.exit(1)
         if self.configuration["unprotect"]:
             try:
+                print("Executing readout unprotect")
                 self.stm32.readout_unprotect()
             except bootloader.CommandError:
                 # may be caused by readout protection
-                self.debug(0, "Erase failed -- probably due to readout protection")
+                print("Readout unprotect failed", file=sys.stderr)
                 self.debug(0, "Quit")
-                self.stm32.reset_from_flash()
                 sys.exit(1)
         if self.configuration["erase"]:
             try:

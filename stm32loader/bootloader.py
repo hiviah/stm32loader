@@ -553,7 +553,6 @@ class Stm32Bootloader:
         self.command(self.Command.READOUT_UNPROTECT, "Readout unprotect")
         self._wait_for_ack("0x92 readout unprotect failed")
         self.debug(20, "    Mass erase -- this may take a while")
-        time.sleep(20)
         self.debug(20, "    Unprotect / mass erase done")
         self.debug(20, "    Reset after automatic chip reset due to readout unprotect")
         self.reset_from_system_memory()
